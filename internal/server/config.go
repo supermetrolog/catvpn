@@ -11,6 +11,7 @@ type Config struct {
 	HeartBeatTimeInterval int       // Интервал времени, с которым нужно отпрввлять heartbeats для поддеркжи соединения
 	ServerPort            int       // Порт, который будет слушать UDP сервер
 	Net                   string
+	Mtu                   int
 }
 
 func NewConfig(
@@ -18,12 +19,16 @@ func NewConfig(
 	subnet net.IPNet,
 	heartBeatTimeInterval int,
 	serverPort int,
+	mtu int,
+	net strign,
 ) *Config {
 	return &Config{
 		BufferSize:            bufferSize,
 		Subnet:                subnet,
 		HeartBeatTimeInterval: heartBeatTimeInterval,
 		ServerPort:            serverPort,
+		Mtu:                   mtu,
+		Net:                   net,
 	}
 }
 

@@ -11,6 +11,10 @@ import (
 	"net"
 )
 
+type TrafficRoutingConfigurator interface {
+	RouteToSubnet(subnet net.IPNet) error
+}
+
 type Tunnel net.PacketConn
 
 type TunnelFactory interface {
@@ -18,7 +22,7 @@ type TunnelFactory interface {
 }
 
 type TunFactory interface {
-	Create(subnet net.IPNet) (io.ReadWriteCloser, error)
+	Create(subnet net.IPNet, mtu int) (io.ReadWriteCloser, error)
 }
 
 type Net io.ReadWriter
@@ -37,31 +41,34 @@ type PeersManager interface {
 }
 
 type Server struct {
-	cfg *Config
-
-	toTunnel chan *protocol.Packet
-	toNet    chan *protocol.Packet
-
+	cfg        *Config
 	fromTunnel chan *protocol.TunnelPacket
 	fromNet    chan *protocol.NetPacket
+	tunnel     Tunnel
+	net        Net
 
-	tunnelFactory TunnelFactory
-	tunFactory    TunFactory
-
-	tunnel Tunnel
-	net    Net
-
-	IpDistributor IpDistributor
-	peersManager  PeersManager
+	tunnelFactory              TunnelFactory
+	tunFactory                 TunFactory
+	ipDistributor              IpDistributor
+	peersManager               PeersManager
+	trafficRoutingConfigurator TrafficRoutingConfigurator
 }
 
-func NewServer(cfg *Config, tunnelF TunnelFactory, tunF TunFactory) *Server {
+func NewServer(
+	cfg *Config,
+	tunnelF TunnelFactory,
+	tunF TunFactory,
+	ipDistributor IpDistributor,
+	peersManager PeersManager,
+	trafficRoutingConfigurator TrafficRoutingConfigurator,
+) *Server {
 	return &Server{
-		cfg:           cfg,
-		tunnelFactory: tunnelF,
-		tunFactory:    tunF,
-		toTunnel:      make(chan *protocol.Packet),
-		toNet:         make(chan *protocol.Packet),
+		cfg:                        cfg,
+		tunnelFactory:              tunnelF,
+		tunFactory:                 tunF,
+		ipDistributor:              ipDistributor,
+		peersManager:               peersManager,
+		trafficRoutingConfigurator: trafficRoutingConfigurator,
 	}
 }
 
@@ -95,6 +102,11 @@ func (s *Server) setup() error {
 	}
 
 	s.tunnel = tunnel
+
+	err = s.trafficRoutingConfigurator.RouteToSubnet(s.cfg.Subnet)
+	if err != nil {
+		return fmt.Errorf("traffic route to subnet error: %w", err)
+	}
 
 	return nil
 }
@@ -141,7 +153,7 @@ func (s *Server) fromTunnelConsumer() error {
 				return fmt.Errorf("parse from net ip header error: %w", err)
 			}
 
-			allocatedIp, err := s.IpDistributor.AllocateIP()
+			allocatedIp, err := s.ipDistributor.AllocateIP()
 			if err != nil {
 				return fmt.Errorf("allocate ip error: %w", err)
 			}

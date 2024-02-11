@@ -1,14 +1,10 @@
 package main
 
 import (
-	"github.com/supermetrolog/myvpn/internal/helpers/checkerr"
 	"github.com/supermetrolog/myvpn/internal/server"
+	"github.com/supermetrolog/myvpn/internal/tuntap"
 	"net"
 )
-
-type TrafficRoutingConfigurator interface {
-	RouteToSubnet(subnet net.IPNet) error
-}
 
 func main() {
 	subnet := net.IPNet{
@@ -23,26 +19,7 @@ func main() {
 		ServerPort:            9090,
 	}
 
-	iface := createTun(subnet)
-	defer iface.Close() // TODO
+	tunFactory := tuntap.NewFactory()
 
-	configureOSTrafficRouting(subnet)
-
-	server := server.NewServer(cfg, iface, iface)
-}
-
-func configureOSTrafficRouting(subnet net.IPNet) {
-	var trafficRoutingConfigurator TrafficRoutingConfigurator
-
-	err := trafficRoutingConfigurator.RouteToSubnet(subnet)
-	checkerr.CheckErr("route traffic to subnet error", err)
-}
-
-func createTun(subnet net.IPNet) TunIface {
-	var tunCreator TunCreator
-
-	iface, err := tunCreator.Create(subnet)
-	checkerr.CheckErr("create tun iface error", err)
-
-	return iface
+	server := server.NewServer(cfg)
 }

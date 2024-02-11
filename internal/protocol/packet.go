@@ -23,7 +23,7 @@ func NewHeader(flag Flag) Header {
 	}
 }
 
-func (h *Header) Flag() Flag {
+func (h Header) Flag() Flag {
 	return h.flag
 }
 
