@@ -34,8 +34,7 @@ func (t *TunFactory) Create(subnet net.IPNet, mtu int) (server.Tun, error) {
 	cmd := fmt.Sprintf("ip link set dev %s mtu %d", iface.Name(), mtu)
 	out, err := command.RunCommand(cmd)
 	if err != nil {
-		log.Println(out)
-		return nil, err
+		return nil, fmt.Errorf("set iface mtu error: out: %s, error: %w", out, err)
 	}
 
 	log.Printf("Назначаем IP адресс: %s, для созданного интерфейса: %s\n", subnet.IP, iface.Name())
@@ -43,8 +42,7 @@ func (t *TunFactory) Create(subnet net.IPNet, mtu int) (server.Tun, error) {
 	cmd = fmt.Sprintf("ip addr add %s/24 dev %s", subnet.IP, iface.Name())
 	out, err = command.RunCommand(cmd)
 	if err != nil {
-		log.Println(out)
-		return nil, err
+		return nil, fmt.Errorf("set ip addr error: out: %s, error: %w", out, err)
 	}
 
 	log.Println("Включаем созданный интерфейс")
@@ -52,8 +50,7 @@ func (t *TunFactory) Create(subnet net.IPNet, mtu int) (server.Tun, error) {
 	cmd = fmt.Sprintf("ip link set dev %s up", iface.Name())
 	out, err = command.RunCommand(cmd)
 	if err != nil {
-		log.Println(out)
-		return nil, err
+		return nil, fmt.Errorf("enable created iface error: out: %s, error: %w", out, err)
 	}
 
 	//log.Printf("Маршрутизируем пир: %s, для созданного интерфейса: %s\n", ip, iface.Name())

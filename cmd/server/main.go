@@ -23,7 +23,7 @@ func main() {
 		ServerPort:            9090,
 	}
 
-	tunFactory := tuntap.NewFactory()
+	tunFactory := tuntap.New()
 	tunnelFactory := tunnel.NewTunnelFactory()
 	ipDistributor := ipdistributor.New()
 	peersManager := peersmanager.New()
