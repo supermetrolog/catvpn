@@ -9,16 +9,32 @@ const (
 	FlagData
 )
 
+const HeaderSize = 1
+
 type Flag byte
 
+type Header struct {
+	flag Flag
+}
+
+func NewHeader(flag Flag) Header {
+	return Header{
+		flag: flag,
+	}
+}
+
+func (h *Header) Flag() Flag {
+	return h.flag
+}
+
 type Packet struct {
-	flag    Flag
+	header  Header
 	payload []byte
 }
 
-func NewPacket(flag Flag, payload []byte) *Packet {
+func NewPacket(header Header, payload []byte) *Packet {
 	return &Packet{
-		flag:    flag,
+		header:  header,
 		payload: payload,
 	}
 }
@@ -27,8 +43,8 @@ func (p *Packet) Payload() []byte {
 	return p.payload
 }
 
-func (p *Packet) Flag() Flag {
-	return p.flag
+func (p *Packet) Header() Header {
+	return p.header
 }
 
 type TunnelPacket struct {
@@ -44,9 +60,9 @@ func (p *TunnelPacket) Addr() net.Addr {
 	return p.addr
 }
 
-func NewTunnelPacket(addr net.Addr, flag Flag, payload []byte) *TunnelPacket {
+func NewTunnelPacket(addr net.Addr, header Header, payload []byte) *TunnelPacket {
 	return &TunnelPacket{
-		packet: NewPacket(flag, payload),
+		packet: NewPacket(header, payload),
 		addr:   addr,
 	}
 }
