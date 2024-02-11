@@ -21,8 +21,10 @@ type TunnelFactory interface {
 	Create(addr net.Addr) (Tunnel, error)
 }
 
+type Tun io.ReadWriteCloser
+
 type TunFactory interface {
-	Create(subnet net.IPNet, mtu int) (io.ReadWriteCloser, error)
+	Create(subnet net.IPNet, mtu int) (Tun, error)
 }
 
 type Net io.ReadWriter
@@ -90,7 +92,7 @@ func (s *Server) Serve() {
 }
 
 func (s *Server) setup() error {
-	tun, err := s.tunFactory.Create(s.cfg.Subnet)
+	tun, err := s.tunFactory.Create(s.cfg.Subnet, s.cfg.Mtu)
 	if err != nil {
 		return fmt.Errorf("create tun iface error: %w", err)
 	}

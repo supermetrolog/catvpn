@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/songgao/water"
 	"github.com/supermetrolog/myvpn/internal/helpers/command"
-	"io"
+	"github.com/supermetrolog/myvpn/internal/server"
 	"log"
 	"net"
 )
@@ -16,7 +16,7 @@ func NewFactory() *TunFactory {
 	return &TunFactory{}
 }
 
-func (t *TunFactory) Create(subnet net.IPNet, mtu int) (io.ReadWriteCloser, error) {
+func (t *TunFactory) Create(subnet net.IPNet, mtu int) (server.Tun, error) {
 	config := water.Config{
 		DeviceType: water.TUN,
 	}

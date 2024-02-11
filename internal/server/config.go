@@ -20,7 +20,7 @@ func NewConfig(
 	heartBeatTimeInterval int,
 	serverPort int,
 	mtu int,
-	net strign,
+	net string,
 ) *Config {
 	return &Config{
 		BufferSize:            bufferSize,
