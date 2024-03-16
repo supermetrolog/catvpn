@@ -16,20 +16,22 @@ func main() {
 		Mask: net.IPv4Mask(255, 255, 255, 0),
 	}
 
-	cfg := &server.Config{
-		BufferSize:            2000,
-		Subnet:                subnet,
-		HeartBeatTimeInterval: 60,
-		ServerPort:            9090,
-	}
+	cfg := server.NewConfig(
+		2000,
+		subnet,
+		60,
+		9090,
+		1300,
+		"udp",
+	)
 
 	tunFactory := tuntap.New()
 	trafficRouteConfigurator := routeconfigurator.New()
 	tunnelFactory := tunnel.NewTunnelFactory()
-	ipDistributor := ipdistributor.New()
+	ipDistributorFactory := ipdistributor.NewIpDistributorFactory()
 	peersManager := peersmanager.New()
 
-	s := server.NewServer(cfg, tunnelFactory, tunFactory, ipDistributor, peersManager, trafficRouteConfigurator)
+	s := server.NewServer(cfg, tunnelFactory, tunFactory, ipDistributorFactory, peersManager, trafficRouteConfigurator)
 
 	s.Serve()
 }

@@ -35,6 +35,10 @@ type IpDistributor interface {
 	LoadAvailableSubnet(net.IPNet) error
 }
 
+type IpDistributorFactory interface {
+	Create(ipNet net.IPNet) (IpDistributor, error)
+}
+
 type PeersManager interface {
 	Add(peer *protocol.Peer) error
 	Remove(peer *protocol.Peer) error
@@ -51,6 +55,7 @@ type Server struct {
 
 	tunnelFactory              TunnelFactory
 	tunFactory                 TunFactory
+	ipDistributorFactory       IpDistributorFactory
 	ipDistributor              IpDistributor
 	peersManager               PeersManager
 	trafficRoutingConfigurator TrafficRoutingConfigurator
@@ -60,7 +65,7 @@ func NewServer(
 	cfg *Config,
 	tunnelF TunnelFactory,
 	tunF TunFactory,
-	ipDistributor IpDistributor,
+	ipDistributorFactory IpDistributorFactory,
 	peersManager PeersManager,
 	trafficRoutingConfigurator TrafficRoutingConfigurator,
 ) *Server {
@@ -68,7 +73,7 @@ func NewServer(
 		cfg:                        cfg,
 		tunnelFactory:              tunnelF,
 		tunFactory:                 tunF,
-		ipDistributor:              ipDistributor,
+		ipDistributorFactory:       ipDistributorFactory,
 		peersManager:               peersManager,
 		trafficRoutingConfigurator: trafficRoutingConfigurator,
 	}
@@ -109,6 +114,13 @@ func (s *Server) setup() error {
 	if err != nil {
 		return fmt.Errorf("traffic route to subnet error: %w", err)
 	}
+
+	ipDistributor, err := s.ipDistributorFactory.Create(s.cfg.Subnet)
+	if err != nil {
+		return fmt.Errorf("create ip distributor error: %w", err)
+	}
+
+	s.ipDistributor = ipDistributor
 
 	return nil
 }
