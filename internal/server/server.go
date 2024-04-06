@@ -6,44 +6,8 @@ import (
 	"github.com/supermetrolog/myvpn/internal/helpers/command"
 	"github.com/supermetrolog/myvpn/internal/protocol"
 	"golang.org/x/net/ipv4"
-	"io"
 	"log"
-	"net"
 )
-
-type TrafficRoutingConfigurator interface {
-	RouteToSubnet(subnet net.IPNet) error
-}
-
-type Tunnel net.PacketConn
-
-type TunnelFactory interface {
-	Create(addr net.Addr) (Tunnel, error)
-}
-
-type Tun io.ReadWriteCloser
-
-type TunFactory interface {
-	Create(subnet net.IPNet, mtu int) (Tun, error)
-}
-
-type Net io.ReadWriter
-
-type IpDistributor interface {
-	AllocateIP() (net.IP, error)
-	ReleaseIP(net.IP) error
-}
-
-type IpDistributorFactory interface {
-	Create(ipNet net.IPNet) (IpDistributor, error)
-}
-
-type PeersManager interface {
-	Add(peer *protocol.Peer) error
-	Remove(peer *protocol.Peer) error
-	FindByDedicatedIp(ip net.IP) (peer *protocol.Peer, exists bool, err error)
-	FindByRealIp(ip net.IP) (peer *protocol.Peer, exists bool, err error)
-}
 
 type Server struct {
 	cfg        *Config
@@ -92,7 +56,7 @@ func (s *Server) Serve() {
 		checkerr.CheckErr("consume tunnel error", s.fromTunnelConsumer())
 	}()
 
-	checkerr.CheckErr("consume net error", s.fromTunnelConsumer())
+	checkerr.CheckErr("consume net error", s.fromNetConsumer())
 }
 
 func (s *Server) setup() error {
