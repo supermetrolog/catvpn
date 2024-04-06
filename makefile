@@ -7,3 +7,6 @@ client:
 
 resource:
 	go run ./cmd/resource/main.go
+
+test:
+	go test ./...

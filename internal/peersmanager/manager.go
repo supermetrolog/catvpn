@@ -19,8 +19,8 @@ func (p *PeersManager) Remove(peer *protocol.Peer) error {
 	return nil
 }
 func (p *PeersManager) FindByDedicatedIp(ip net.IP) (peer *protocol.Peer, exists bool, err error) {
-	return nil
+	return nil, false, nil
 }
 func (p *PeersManager) FindByRealIp(ip net.IP) (peer *protocol.Peer, exists bool, err error) {
-	return nil
+	return nil, false, nil
 }

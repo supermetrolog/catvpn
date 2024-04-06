@@ -32,7 +32,6 @@ type Net io.ReadWriter
 type IpDistributor interface {
 	AllocateIP() (net.IP, error)
 	ReleaseIP(net.IP) error
-	LoadAvailableSubnet(net.IPNet) error
 }
 
 type IpDistributorFactory interface {
