@@ -6,14 +6,14 @@ import (
 	"net"
 )
 
-type TunnelFactory struct {
+type Factory struct {
 }
 
-func NewTunnelFactory() *TunnelFactory {
-	return &TunnelFactory{}
+func NewTunnelFactory() *Factory {
+	return &Factory{}
 }
 
-func (t *TunnelFactory) Create(addr net.Addr) (server.Tunnel, error) {
+func (t *Factory) Create(addr net.Addr) (server.Tunnel, error) {
 	udpAddr, err := net.ResolveUDPAddr(addr.Network(), addr.String())
 	if err != nil {
 		return nil, fmt.Errorf("unable to resolve udp addr: %w", err)

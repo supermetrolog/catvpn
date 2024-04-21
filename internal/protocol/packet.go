@@ -47,6 +47,19 @@ func (p *Packet) Header() Header {
 	return p.header
 }
 
+func (p *Packet) Marshal() []byte {
+	bytes := make([]byte, HeaderSize+len(p.Payload()))
+
+	bytes = append(bytes, byte(p.Header().Flag()))
+	bytes = append(bytes, p.Payload()...)
+
+	return bytes
+}
+
+func UnmarshalTunnelPacket(addr net.Addr, bytes []byte) *TunnelPacket {
+	return NewTunnelPacket(addr, NewHeader(Flag(bytes[0])), bytes[HeaderSize:])
+}
+
 type TunnelPacket struct {
 	packet *Packet
 	addr   net.Addr

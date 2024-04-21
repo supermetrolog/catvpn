@@ -117,7 +117,7 @@ func (s *Server) listenTunnel() error {
 
 		command.WritePacket(buf[:n])
 
-		s.fromTunnel <- protocol.NewTunnelPacket(addr, protocol.NewHeader(protocol.Flag(buf[0])), buf[1:]) // TODO: from bytes to header struct
+		s.fromTunnel <- protocol.UnmarshalTunnelPacket(addr, buf)
 	}
 }
 
@@ -127,7 +127,7 @@ func (s *Server) fromTunnelConsumer() error {
 		case protocol.FlagAcknowledge:
 			header, err := ipv4.ParseHeader(packet.Packet().Payload())
 			if err != nil {
-				return fmt.Errorf("parse from net ip header error: %w", err)
+				return fmt.Errorf("parse from tunnel ip header error: %w", err)
 			}
 
 			allocatedIp, err := s.ipDistributor.AllocateIP()
@@ -135,10 +135,18 @@ func (s *Server) fromTunnelConsumer() error {
 				return fmt.Errorf("allocate ip error: %w", err)
 			}
 
-			err = s.peersManager.Add(protocol.NewPeer(header.Src, allocatedIp, packet.Addr()))
+			peer := protocol.NewPeer(header.Src, allocatedIp, packet.Addr())
+			err = s.peersManager.Add(peer)
 			if err != nil {
 				return fmt.Errorf("add new peer error: %w", err)
 			}
+
+			_, err = s.WriteToTunnel(protocol.NewTunnelPacket(peer.Addr(), protocol.NewHeader(protocol.FlagAcknowledge), allocatedIp.To4()))
+
+			if err != nil {
+				return fmt.Errorf("write ack answer to peer error: %w", err)
+			}
+
 		case protocol.FlagFin:
 			header, err := ipv4.ParseHeader(packet.Packet().Payload())
 			if err != nil {
@@ -157,6 +165,13 @@ func (s *Server) fromTunnelConsumer() error {
 			if err != nil {
 				return fmt.Errorf("remove peer error: %w", err)
 			}
+
+			err = s.ipDistributor.ReleaseIP(peer.DedicatedIP())
+
+			if err != nil {
+				return fmt.Errorf("release peer dedicated IP error: %w", err)
+			}
+
 		case protocol.FlagData:
 			n, err := s.net.Write(packet.Packet().Payload())
 			if err != nil {
@@ -187,7 +202,7 @@ func (s *Server) fromNetConsumer() error {
 			return fmt.Errorf("peer not found")
 		}
 
-		n, err := s.tunnel.WriteTo(*packet, peer.Addr())
+		n, err := s.WriteToTunnel(protocol.NewTunnelPacket(peer.Addr(), protocol.NewHeader(protocol.FlagData), *packet))
 
 		if err != nil {
 			return fmt.Errorf("write in tunnel error: %w", err)
@@ -197,4 +212,8 @@ func (s *Server) fromNetConsumer() error {
 	}
 
 	return nil
+}
+
+func (s *Server) WriteToTunnel(packet *protocol.TunnelPacket) (int, error) {
+	return s.tunnel.WriteTo(packet.Packet().Marshal(), packet.Addr())
 }
