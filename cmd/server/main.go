@@ -20,6 +20,7 @@ func main() {
 		2000,
 		subnet,
 		60,
+		net.IPv4(0, 0, 0, 0),
 		9090,
 		1300,
 		"udp",
@@ -27,7 +28,7 @@ func main() {
 
 	tunFactory := tuntap.New()
 	trafficRouteConfigurator := routeconfigurator.NewServerTrafficRouteConfigurator()
-	tunnelFactory := tunnel.NewTunnelFactory()
+	tunnelFactory := tunnel.NewServerTunnelFactory()
 	ipDistributorFactory := ipdistributor.NewIpDistributorFactory()
 	peersManager := peersmanager.New()
 

@@ -72,6 +72,8 @@ func (s *Server) setup() error {
 		return fmt.Errorf("create tunnel error: %w", err)
 	}
 
+	log.Printf("Created tunnel. Tunnel addr: %s", s.cfg.TunnelAddr())
+
 	s.tunnel = tunnel
 
 	err = s.trafficRoutingConfigurator.RouteToSubnet(s.cfg.Subnet)
@@ -216,5 +218,11 @@ func (s *Server) fromNetConsumer() error {
 }
 
 func (s *Server) WriteToTunnel(packet *protocol.TunnelPacket) (int, error) {
-	return s.tunnel.WriteTo(packet.Packet().Marshal(), packet.Addr())
+	n, err := s.tunnel.WriteTo(packet.Packet().Marshal(), packet.Addr())
+
+	if err != nil {
+		return n, fmt.Errorf("write to tunnel error: %w", err)
+	}
+
+	return n, err
 }

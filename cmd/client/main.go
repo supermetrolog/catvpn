@@ -10,7 +10,8 @@ import (
 
 func main() {
 
-	serverIp := net.IPv4(10, 1, 1, 1)
+	//serverIp := net.IPv4(10, 1, 1, 1)
+	serverIp := net.IPv4(172, 24, 0, 3)
 
 	cfg := client.NewConfig(
 		2000,
@@ -22,7 +23,7 @@ func main() {
 	)
 
 	tunFactory := tuntap.New()
-	tunnelFactory := tunnel.NewTunnelFactory()
+	tunnelFactory := tunnel.NewClientTunnelFactory()
 	trafficRouteConfigurator := routeconfigurator.NewClientTrafficRouteConfigurator()
 
 	s := client.NewClient(cfg, tunnelFactory, tunFactory, trafficRouteConfigurator)

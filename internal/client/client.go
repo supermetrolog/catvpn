@@ -199,5 +199,11 @@ func (c *Client) fromNetConsumer() error {
 }
 
 func (c *Client) WriteToTunnel(packet *protocol.TunnelPacket) (int, error) {
-	return c.tunnel.WriteTo(packet.Packet().Marshal(), packet.Addr())
+	n, err := c.tunnel.WriteTo(packet.Packet().Marshal(), packet.Addr())
+
+	if err != nil {
+		return n, fmt.Errorf("write to tunnel error: %w", err)
+	}
+
+	return n, err
 }
