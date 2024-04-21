@@ -1,6 +1,10 @@
 package protocol
 
-import "net"
+import (
+	"bytes"
+	"log"
+	"net"
+)
 
 const (
 	FlagHandshake Flag = iota
@@ -48,12 +52,16 @@ func (p *Packet) Header() Header {
 }
 
 func (p *Packet) Marshal() []byte {
-	bytes := make([]byte, HeaderSize+len(p.Payload()))
+	var buf []byte
 
-	bytes = append(bytes, byte(p.Header().Flag()))
-	bytes = append(bytes, p.Payload()...)
+	buffer := bytes.NewBuffer(buf)
 
-	return bytes
+	buffer.WriteByte(byte(p.Header().Flag()))
+	buffer.Write(p.Payload())
+
+	log.Println(buffer.Bytes())
+
+	return buffer.Bytes()
 }
 
 func UnmarshalTunnelPacket(addr net.Addr, bytes []byte) *TunnelPacket {
