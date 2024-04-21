@@ -39,7 +39,7 @@ func (t *TunFactory) Create(subnet net.IPNet, mtu int) (common.Tun, error) {
 
 	log.Printf("Назначаем IP адресс: %s, для созданного интерфейса: %s\n", subnet.IP, iface.Name())
 
-	cmd = fmt.Sprintf("ip addr add %s dev %s", subnet.String(), iface.Name()) // TODO: mask size test
+	cmd = fmt.Sprintf("ip addr add %s dev %s", subnet.String(), iface.Name())
 	out, err = command.RunCommand(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("set ip addr error: out: %s, error: %w", out, err)

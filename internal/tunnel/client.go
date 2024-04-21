@@ -37,7 +37,7 @@ func NewClientTunnelFactory() *ClientTunnelFactory {
 //}
 
 func (t *ClientTunnelFactory) Create(addr net.Addr) (common.Tunnel, error) {
-	udpAddr, err := net.ResolveUDPAddr(addr.Network(), "192.168.16.2:9091") // TODO:
+	udpAddr, err := net.ResolveUDPAddr(addr.Network(), addr.String())
 	if err != nil {
 		return nil, fmt.Errorf("unable to resolve udp addr: %w", err)
 	}

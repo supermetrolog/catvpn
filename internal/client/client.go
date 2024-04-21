@@ -66,14 +66,14 @@ func (c *Client) Serve() {
 }
 
 func (c *Client) setup() error {
-	tunnel, err := c.tunnelFactory.Create(c.cfg.TunnelAddr())
+	tunnel, err := c.tunnelFactory.Create(c.cfg.TunnelClientAddr())
 	if err != nil {
 		return fmt.Errorf("create tunnel error: %w", err)
 	}
 
 	c.tunnel = tunnel
 
-	n, err := c.WriteToTunnel(protocol.NewTunnelPacket(c.cfg.TunnelAddr(), protocol.NewHeader(protocol.FlagAcknowledge), []byte{}))
+	n, err := c.WriteToTunnel(protocol.NewTunnelPacket(c.cfg.TunnelServerAddr(), protocol.NewHeader(protocol.FlagAcknowledge), []byte{}))
 
 	if err != nil {
 		return fmt.Errorf("send ack flag to server error: %w", err)
@@ -184,7 +184,7 @@ func (c *Client) fromTunnelConsumer() error {
 
 func (c *Client) fromNetConsumer() error {
 	for packet := range c.fromNet {
-		tunnelPacket := protocol.NewTunnelPacket(c.cfg.TunnelAddr(), protocol.NewHeader(protocol.FlagData), *packet)
+		tunnelPacket := protocol.NewTunnelPacket(c.cfg.TunnelServerAddr(), protocol.NewHeader(protocol.FlagData), *packet)
 
 		n, err := c.tunnel.WriteTo(*packet, tunnelPacket.Addr())
 
