@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/supermetrolog/myvpn/internal/common"
 	"github.com/supermetrolog/myvpn/internal/protocol"
 	"io"
 	"net"
@@ -10,16 +11,8 @@ type TrafficRoutingConfigurator interface {
 	RouteToSubnet(subnet net.IPNet) error
 }
 
-type Tunnel net.PacketConn
-
-type TunnelFactory interface {
-	Create(addr net.Addr) (Tunnel, error)
-}
-
-type Tun io.ReadWriteCloser
-
 type TunFactory interface {
-	Create(subnet net.IPNet, mtu int) (Tun, error)
+	Create(subnet net.IPNet, mtu int) (common.Tun, error)
 }
 
 type Net io.ReadWriter

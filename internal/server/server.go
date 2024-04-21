@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/supermetrolog/myvpn/internal/common"
 	"github.com/supermetrolog/myvpn/internal/helpers/checkerr"
 	"github.com/supermetrolog/myvpn/internal/helpers/command"
 	"github.com/supermetrolog/myvpn/internal/protocol"
@@ -13,10 +14,10 @@ type Server struct {
 	cfg        *Config
 	fromTunnel chan *protocol.TunnelPacket
 	fromNet    chan *protocol.NetPacket
-	tunnel     Tunnel
+	tunnel     common.Tunnel
 	net        Net
 
-	tunnelFactory              TunnelFactory
+	tunnelFactory              common.TunnelFactory
 	tunFactory                 TunFactory
 	ipDistributorFactory       IpDistributorFactory
 	ipDistributor              IpDistributor
@@ -26,7 +27,7 @@ type Server struct {
 
 func NewServer(
 	cfg *Config,
-	tunnelF TunnelFactory,
+	tunnelF common.TunnelFactory,
 	tunF TunFactory,
 	ipDistributorFactory IpDistributorFactory,
 	peersManager PeersManager,

@@ -6,14 +6,14 @@ import (
 	"net"
 )
 
-type TrafficRouteConfigurator struct {
+type ServerTrafficRouteConfigurator struct {
 }
 
-func New() *TrafficRouteConfigurator {
-	return &TrafficRouteConfigurator{}
+func NewServerTrafficRouteConfigurator() *ServerTrafficRouteConfigurator {
+	return &ServerTrafficRouteConfigurator{}
 }
 
-func (t *TrafficRouteConfigurator) RouteToSubnet(subnet net.IPNet) error {
+func (t *ServerTrafficRouteConfigurator) RouteToSubnet(subnet net.IPNet) error {
 	CIDR := subnet.String()
 
 	cmd := fmt.Sprintf("sysctl -w net.ipv4.ip_forward=1")

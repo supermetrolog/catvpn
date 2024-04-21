@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"github.com/supermetrolog/myvpn/internal/common"
 	"github.com/supermetrolog/myvpn/internal/helpers/checkerr"
 	"github.com/supermetrolog/myvpn/internal/helpers/command"
 	"github.com/supermetrolog/myvpn/internal/protocol"
@@ -18,21 +19,20 @@ type Client struct {
 	cfg           *Config
 	fromTunnel    chan *protocol.TunnelPacket
 	fromNet       chan *protocol.NetPacket
-	tunnel        Tunnel
+	tunnel        common.Tunnel
 	net           Net
-	tun           Tun // TODO: saved for close conn
+	tun           common.Tun // TODO: saved for close conn
 	connectedChan chan struct{}
+	state         State
 
-	tunnelFactory              TunnelFactory
+	tunnelFactory              common.TunnelFactory
 	tunFactory                 TunFactory
 	trafficRoutingConfigurator TrafficRoutingConfigurator
-
-	state State
 }
 
 func NewClient(
 	cfg *Config,
-	tunnelF TunnelFactory,
+	tunnelF common.TunnelFactory,
 	tunF TunFactory,
 	trafficRoutingConfigurator TrafficRoutingConfigurator,
 ) *Client {

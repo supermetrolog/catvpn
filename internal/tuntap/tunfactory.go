@@ -3,8 +3,8 @@ package tuntap
 import (
 	"fmt"
 	"github.com/songgao/water"
+	"github.com/supermetrolog/myvpn/internal/common"
 	"github.com/supermetrolog/myvpn/internal/helpers/command"
-	"github.com/supermetrolog/myvpn/internal/server"
 	"log"
 	"net"
 )
@@ -16,7 +16,7 @@ func New() *TunFactory {
 	return &TunFactory{}
 }
 
-func (t *TunFactory) Create(subnet net.IPNet, mtu int) (server.Tun, error) {
+func (t *TunFactory) Create(subnet net.IPNet, mtu int) (common.Tun, error) {
 	config := water.Config{
 		DeviceType: water.TUN,
 	}

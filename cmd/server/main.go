@@ -26,7 +26,7 @@ func main() {
 	)
 
 	tunFactory := tuntap.New()
-	trafficRouteConfigurator := routeconfigurator.New()
+	trafficRouteConfigurator := routeconfigurator.NewServerTrafficRouteConfigurator()
 	tunnelFactory := tunnel.NewTunnelFactory()
 	ipDistributorFactory := ipdistributor.NewIpDistributorFactory()
 	peersManager := peersmanager.New()
