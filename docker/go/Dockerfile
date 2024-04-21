@@ -9,6 +9,7 @@ RUN apt install iproute2 -y
 RUN apt install iptables -y
 RUN apt install tcpdump -y
 RUN apt install iputils-ping -y
+RUN apt install telnet -y
 
 RUN curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
 

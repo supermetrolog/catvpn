@@ -72,7 +72,7 @@ func (s *Server) setup() error {
 		return fmt.Errorf("create tunnel error: %w", err)
 	}
 
-	log.Printf("Created tunnel. Tunnel addr: %s", s.cfg.TunnelAddr())
+	log.Printf("Created tunnel. Tunnel addr: %s", tunnel.LocalAddr())
 
 	s.tunnel = tunnel
 

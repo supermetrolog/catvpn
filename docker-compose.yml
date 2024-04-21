@@ -19,6 +19,8 @@ services:
       - /dev/net/tun:/dev/net/tun
     volumes:
       - .:/opt/app
+    ports:
+      - "9090:9090"
     networks:
       src_server:
       dst_server:

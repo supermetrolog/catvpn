@@ -2,22 +2,26 @@ package main
 
 import (
 	"github.com/supermetrolog/myvpn/internal/client"
+	"github.com/supermetrolog/myvpn/internal/helpers/checkerr"
 	"github.com/supermetrolog/myvpn/internal/routeconfigurator"
 	"github.com/supermetrolog/myvpn/internal/tunnel"
 	"github.com/supermetrolog/myvpn/internal/tuntap"
 	"net"
+	"strconv"
 )
 
 func main() {
+	serverIp := net.IPv4(192, 168, 16, 3)
+	serverPort := 9090
 
-	//serverIp := net.IPv4(10, 1, 1, 1)
-	serverIp := net.IPv4(172, 24, 0, 3)
+	addr, err := net.ResolveUDPAddr("udp", serverIp.String()+":"+strconv.Itoa(serverPort))
+
+	checkerr.CheckErr("Unable resolve udp addr", err)
 
 	cfg := client.NewConfig(
 		2000,
 		60,
-		serverIp,
-		9090,
+		addr,
 		1300,
 		"udp",
 	)
