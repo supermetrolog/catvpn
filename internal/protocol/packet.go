@@ -59,8 +59,6 @@ func (p *Packet) Marshal() []byte {
 	buffer.WriteByte(byte(p.Header().Flag()))
 	buffer.Write(p.Payload())
 
-	log.Println(buffer.Bytes())
-
 	return buffer.Bytes()
 }
 

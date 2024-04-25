@@ -113,7 +113,7 @@ func (c *Client) listenTunnel() error {
 
 		log.Printf("Readed bytes from TUNNEL: %d", n)
 
-		c.fromTunnel <- protocol.UnmarshalTunnelPacket(addr, buf)
+		c.fromTunnel <- protocol.UnmarshalTunnelPacket(addr, buf[:n])
 	}
 }
 
@@ -145,7 +145,7 @@ func (c *Client) fromNetConsumer() error {
 	for packet := range c.fromNet {
 		tunnelPacket := protocol.NewTunnelPacket(c.cfg.TunnelServerAddr(), protocol.NewHeader(protocol.FlagData), *packet)
 
-		n, err := c.tunnel.WriteTo(tunnelPacket.Packet().Marshal(), tunnelPacket.Addr())
+		n, err := c.WriteToTunnel(tunnelPacket)
 
 		if err != nil {
 			return fmt.Errorf("write in tunnel error: %w", err)
