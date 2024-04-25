@@ -16,7 +16,9 @@ func (c *Client) ackHandler(packet *protocol.TunnelPacket) error {
 
 	log.Printf("Ack FLAG. Connected to server")
 
-	dedicatedIPBytes := packet.Packet().Payload()[protocol.HeaderSize : net.IPv4len+protocol.HeaderSize]
+	//dedicatedIPBytes := packet.Packet().Payload()[protocol.HeaderSize : net.IPv4len+protocol.HeaderSize]
+	dedicatedIPBytes := packet.Packet().Payload()
+	c.state.allocatedIP = net.IPv4(dedicatedIPBytes[0], dedicatedIPBytes[1], dedicatedIPBytes[2], dedicatedIPBytes[3])
 	c.state.allocatedIP = net.IPv4(dedicatedIPBytes[0], dedicatedIPBytes[1], dedicatedIPBytes[2], dedicatedIPBytes[3])
 	log.Printf("Allocated IP: %s", c.state.allocatedIP.String())
 	c.state.isConnectedToServer = true

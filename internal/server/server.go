@@ -105,7 +105,7 @@ func (s *Server) listenNet() error {
 
 		command.WritePacket(buf[:n])
 
-		p := protocol.NetPacket(buf)
+		p := protocol.NetPacket(buf[:n])
 		s.fromNet <- &p
 	}
 }
