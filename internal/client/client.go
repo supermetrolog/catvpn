@@ -38,6 +38,8 @@ func NewClient(
 ) *Client {
 	return &Client{
 		cfg:                        cfg,
+		fromTunnel:                 make(chan *protocol.TunnelPacket),
+		fromNet:                    make(chan *protocol.NetPacket),
 		tunnelFactory:              tunnelF,
 		tunFactory:                 tunF,
 		trafficRoutingConfigurator: trafficRoutingConfigurator,
@@ -96,7 +98,7 @@ func (c *Client) listenNet() error {
 
 		command.WritePacket(buf[:n])
 
-		p := protocol.NetPacket(buf)
+		p := protocol.NetPacket(buf[:n])
 		c.fromNet <- &p
 	}
 }
@@ -111,8 +113,6 @@ func (c *Client) listenTunnel() error {
 
 		log.Printf("Readed bytes from TUNNEL: %d", n)
 
-		command.WritePacket(buf[:n])
-
 		c.fromTunnel <- protocol.UnmarshalTunnelPacket(addr, buf)
 	}
 }
@@ -121,61 +121,20 @@ func (c *Client) fromTunnelConsumer() error {
 	for packet := range c.fromTunnel {
 		switch packet.Packet().Header().Flag() {
 		case protocol.FlagAcknowledge:
-			if c.state.isConnectedToServer {
-				log.Println("Warn! Already connected to server")
-				break
-			}
-
-			log.Printf("Ack FLAG. Connected to server")
-
-			dedicatedIPBytes := packet.Packet().Payload()[protocol.HeaderSize : net.IPv4len+protocol.HeaderSize]
-			c.state.allocatedIP = net.IPv4(dedicatedIPBytes[0], dedicatedIPBytes[1], dedicatedIPBytes[2], dedicatedIPBytes[3])
-			log.Printf("Allocated IP: %s", c.state.allocatedIP.String())
-			c.state.isConnectedToServer = true
-
-			tun, err := c.tunFactory.Create(
-				net.IPNet{
-					IP:   c.state.allocatedIP,
-					Mask: net.IPv4Mask(255, 255, 255, 0), // TODO:
-				},
-				c.cfg.Mtu,
-			)
-
+			err := c.ackHandler(packet)
 			if err != nil {
-				return fmt.Errorf("create tun interface error: %w", err)
+				return fmt.Errorf("flag ACK error: %w", err) // TODO
 			}
-
-			c.net = tun
-
-			err = c.trafficRoutingConfigurator.RouteToIface(tun.Name()) // TODO: refactor
-			if err != nil {
-				return fmt.Errorf("traffic route to iface error: %w", err)
-			}
-
-			c.connectedChan <- struct{}{} // TODO
-
 		case protocol.FlagFin:
-			c.state.isConnectedToServer = false
-			log.Printf("Fin FLAG. Disconnect from server")
-			err := c.tunnel.Close()
+			err := c.finHandler()
 			if err != nil {
-				log.Printf("Error! Tunnel close error: %v", err)
+				return fmt.Errorf("flag FIN error: %w", err) // TODO
 			}
-			err = c.tun.Close()
-
-			if err != nil {
-				log.Printf("Error! Tun close error: %v", err)
-			}
-
-			return nil // TODO: err handler
 		case protocol.FlagData:
-			// TODO: check is connected
-			n, err := c.net.Write(packet.Packet().Payload())
+			err := c.dataHandler(packet)
 			if err != nil {
-				return fmt.Errorf("write to net error: %w", err)
+				return fmt.Errorf("flag DATA error: %w", err) // TODO
 			}
-
-			log.Printf("Write bytes to net: %d", n)
 		}
 	}
 
@@ -186,7 +145,7 @@ func (c *Client) fromNetConsumer() error {
 	for packet := range c.fromNet {
 		tunnelPacket := protocol.NewTunnelPacket(c.cfg.TunnelServerAddr(), protocol.NewHeader(protocol.FlagData), *packet)
 
-		n, err := c.tunnel.WriteTo(*packet, tunnelPacket.Addr())
+		n, err := c.tunnel.WriteTo(tunnelPacket.Packet().Marshal(), tunnelPacket.Addr())
 
 		if err != nil {
 			return fmt.Errorf("write in tunnel error: %w", err)

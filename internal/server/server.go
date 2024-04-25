@@ -35,6 +35,8 @@ func NewServer(
 ) *Server {
 	return &Server{
 		cfg:                        cfg,
+		fromTunnel:                 make(chan *protocol.TunnelPacket),
+		fromNet:                    make(chan *protocol.NetPacket),
 		tunnelFactory:              tunnelF,
 		tunFactory:                 tunF,
 		ipDistributorFactory:       ipDistributorFactory,
@@ -118,70 +120,34 @@ func (s *Server) listenTunnel() error {
 
 		log.Printf("Readed bytes from TUNNEL: %d", n)
 
-		command.WritePacket(buf[:n])
-
-		s.fromTunnel <- protocol.UnmarshalTunnelPacket(addr, buf)
+		s.fromTunnel <- protocol.UnmarshalTunnelPacket(addr, buf[:n])
 	}
 }
 
 func (s *Server) fromTunnelConsumer() error {
+	log.Println("Consume tunnel")
 	for packet := range s.fromTunnel {
+		log.Printf("Readed from tunnel channel. Flag: %d", packet.Packet().Header().Flag())
 		switch packet.Packet().Header().Flag() {
 		case protocol.FlagAcknowledge:
-			header, err := ipv4.ParseHeader(packet.Packet().Payload())
+			err := s.ackHandler(packet)
 			if err != nil {
-				return fmt.Errorf("parse from tunnel ip header error: %w", err)
+				return fmt.Errorf("flag ACK error: %w", err) // TODO
 			}
-
-			allocatedIp, err := s.ipDistributor.AllocateIP()
-			if err != nil {
-				return fmt.Errorf("allocate ip error: %w", err)
-			}
-
-			peer := protocol.NewPeer(header.Src, allocatedIp, packet.Addr())
-			err = s.peersManager.Add(peer)
-			if err != nil {
-				return fmt.Errorf("add new peer error: %w", err)
-			}
-
-			_, err = s.WriteToTunnel(protocol.NewTunnelPacket(peer.Addr(), protocol.NewHeader(protocol.FlagAcknowledge), allocatedIp.To4()))
-
-			if err != nil {
-				return fmt.Errorf("write ack answer to peer error: %w", err)
-			}
-
 		case protocol.FlagFin:
-			header, err := ipv4.ParseHeader(packet.Packet().Payload())
+			err := s.finHandler(packet)
 			if err != nil {
-				return fmt.Errorf("parse from net ip header error: %w", err)
-			}
-
-			peer, exists, err := s.peersManager.FindByDedicatedIp(header.Src)
-			if err != nil {
-				return fmt.Errorf("find by dedicated ip error: %w", err)
-			}
-			if !exists {
-				return fmt.Errorf("peer with dedicated ip %s not found", header.Src.String())
-			}
-
-			err = s.peersManager.Remove(peer)
-			if err != nil {
-				return fmt.Errorf("remove peer error: %w", err)
-			}
-
-			err = s.ipDistributor.ReleaseIP(peer.DedicatedIP())
-
-			if err != nil {
-				return fmt.Errorf("release peer dedicated IP error: %w", err)
+				return fmt.Errorf("flag FIN error: %w", err) // TODO
 			}
 
 		case protocol.FlagData:
-			n, err := s.net.Write(packet.Packet().Payload())
+			err := s.dataHandler(packet)
 			if err != nil {
-				return fmt.Errorf("write to net error: %w", err)
+				return fmt.Errorf("flag DATA error: %w", err) // TODO
 			}
 
-			log.Printf("Write bytes to net: %d", n)
+		default:
+			return fmt.Errorf("unknown flag")
 		}
 	}
 
