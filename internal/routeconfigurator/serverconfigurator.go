@@ -31,7 +31,8 @@ func (t *ServerTrafficRouteConfigurator) RouteToSubnet(subnet net.IPNet) error {
 	}
 
 	// Разрешаем транзин пакетов из подсети tun интерфейса
-	cmd = fmt.Sprintf("iptables -A FORWARD -s %s -j ACCEPT", CIDR)
+	cmd = fmt.Sprintf("iptables -A FORWARD -s %s -m state --state RELATED,ESTABLISHED -j ACCEPT", CIDR)
+	//cmd = fmt.Sprintf("iptables -A FORWARD -s %s -j ACCEPT", CIDR)
 	out, err = command.RunCommand(cmd)
 	if err != nil {
 		return fmt.Errorf("iptables setup FORWARD with state error: out: %s, error: %w", out, err)
