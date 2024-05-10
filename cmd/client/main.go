@@ -30,7 +30,7 @@ func main() {
 		60,
 		serverAddr,
 		clientAddr,
-		1300,
+		1500,
 		"udp",
 	)
 

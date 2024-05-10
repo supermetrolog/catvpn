@@ -30,11 +30,13 @@ func RunCommand(cmd string) (string, error) {
 func WritePacket(frame []byte) {
 	header, err := ipv4.ParseHeader(frame)
 	if err != nil {
-		fmt.Println("write packet err:", err)
+		fmt.Println("Write packet err:", err)
 	} else {
+		fmt.Println("PACKET LEN:", len(frame))
 		fmt.Println("SRC:", header.Src)
 		fmt.Println("DST:", header.Dst)
 		fmt.Println("ID:", header.ID)
 		fmt.Println("CHECKSUM:", header.Checksum)
+		fmt.Println("TOTAL LEN:", header.TotalLen)
 	}
 }

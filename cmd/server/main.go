@@ -24,13 +24,13 @@ func main() {
 	addr, err := net.ResolveUDPAddr("udp", serverIp.String()+":"+strconv.Itoa(serverPort))
 
 	checkerr.CheckErr("Unable resolve udp addr", err)
-	
+
 	cfg := server.NewConfig(
 		2000,
 		subnet,
 		60,
 		addr,
-		1300,
+		1500,
 		"udp",
 	)
 

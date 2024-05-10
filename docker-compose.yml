@@ -8,7 +8,8 @@ services:
     volumes:
       - .:/opt/app
     networks:
-      dst_server:
+      resource:
+        ipv4_address: 172.29.0.2
 
   server:
     build:
@@ -22,8 +23,10 @@ services:
     ports:
       - "9090:9090"
     networks:
-      src_server:
-      dst_server:
+      client:
+        ipv4_address: 192.168.16.3
+      resource:
+        ipv4_address: 172.29.0.3
 
   client:
     build:
@@ -35,9 +38,20 @@ services:
     volumes:
       - .:/opt/app
     networks:
-      src_server:
+      client:
+        ipv4_address: 192.168.16.2
 
 
 networks:
-  src_server:
-  dst_server:
+  client:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.16.0/24
+          gateway: 192.168.16.1
+  resource:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.29.0.0/24
+          gateway: 172.29.0.1
