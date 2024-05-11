@@ -13,5 +13,6 @@ func LogHeader(frame []byte) {
 		return
 	}
 
-	logrus.Debugf("SRC: %s -- DST: %s -- ID: %d -- CHECKSUM: %d -- TOTAL LEN: %d", header.Src, header.Dst, header.ID, header.Checksum, header.TotalLen)
+	logrus.Infof("SRC: %s -> DST: %s", header.Src, header.Dst)
+	logrus.Debugf("PROTOCOL: %d; ID: %d; CHECKSUM: %d; TOTAL LEN: %d;", header.Protocol, header.ID, header.Checksum, header.TotalLen)
 }

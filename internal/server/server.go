@@ -202,7 +202,7 @@ func (s *Server) fromNetConsumer() error {
 			continue
 		}
 
-		logrus.Infof("Write to TUNNEL %d bytes", n)
+		logrus.Debugf("Write to TUNNEL %d bytes", n)
 	}
 
 	return nil

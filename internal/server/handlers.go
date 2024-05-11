@@ -86,7 +86,7 @@ func (s *Server) dataHandler(packet *protocol.TunnelPacket) error {
 		return fmt.Errorf("write to net error: %w", err)
 	}
 
-	logrus.Infof("Write bytes to NET: %d", n)
+	logrus.Debugf("Write bytes to NET: %d", n)
 
 	return nil
 }
