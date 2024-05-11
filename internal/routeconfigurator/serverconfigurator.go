@@ -23,6 +23,27 @@ func (t *ServerTrafficRouteConfigurator) RouteToSubnet(subnet net.IPNet) error {
 		return fmt.Errorf("enable forward error: out: %s, error: %w", out, err)
 	}
 
+	// Стираем все правила из NAT таблицы
+	cmd = fmt.Sprintf("iptables -t nat -F")
+	out, err = command.RunCommand(cmd)
+	if err != nil {
+		return fmt.Errorf("iptables setup POSTROUTING error: out: %s, error: %w", out, err)
+	}
+
+	// Включаем маскарадинг для основного интерфейса
+	cmd = fmt.Sprintf("iptables -t nat -A POSTROUTING -o eth0 -j SNAT --to-source 192.168.16.3")
+	out, err = command.RunCommand(cmd)
+	if err != nil {
+		return fmt.Errorf("iptables setup POSTROUTING error: out: %s, error: %w", out, err)
+	}
+
+	// Устанавливаем дефолтную политику для FORWARD, которая разрашает маршрутизацию
+	cmd = fmt.Sprintf("iptables -P FORWARD ACCEPT")
+	out, err = command.RunCommand(cmd)
+	if err != nil {
+		return fmt.Errorf("iptables setup POSTROUTING error: out: %s, error: %w", out, err)
+	}
+
 	// Меняем (маскируем) srcIp на Ip внешнего интерфейса если srcIp == SUBNET и dstIp != SUBNET
 	cmd = fmt.Sprintf("iptables -t nat -A POSTROUTING -s %s ! -d %s -j MASQUERADE", CIDR, CIDR)
 	out, err = command.RunCommand(cmd)

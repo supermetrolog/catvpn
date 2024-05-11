@@ -13,5 +13,5 @@ type TunFactory interface {
 }
 
 type TrafficRoutingConfigurator interface {
-	RouteToIface(ifaceName string) error
+	RouteToIface(ifaceName string, ip net.IP) error
 }

@@ -37,7 +37,7 @@ func (c *Client) ackHandler(packet *protocol.TunnelPacket) error {
 
 	c.net = tun
 
-	err = c.trafficRoutingConfigurator.RouteToIface(tun.Name()) // TODO: refactor
+	err = c.trafficRoutingConfigurator.RouteToIface(tun.Name(), c.state.allocatedIP) // TODO: refactor
 	if err != nil {
 		return fmt.Errorf("traffic route to iface error: %w", err)
 	}
