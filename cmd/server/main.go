@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/supermetrolog/myvpn/internal/ipdistributor"
+	_ "github.com/supermetrolog/myvpn/internal/logger"
 	"github.com/supermetrolog/myvpn/internal/peersmanager"
 	"github.com/supermetrolog/myvpn/internal/routeconfigurator"
 	"github.com/supermetrolog/myvpn/internal/server"
@@ -13,10 +14,6 @@ import (
 )
 
 func main() {
-	logrus.SetFormatter(&logrus.TextFormatter{
-		ForceColors: true,
-	})
-
 	subnet := net.IPNet{
 		IP:   net.IPv4(10, 1, 1, 1),
 		Mask: net.IPv4Mask(255, 255, 255, 0),

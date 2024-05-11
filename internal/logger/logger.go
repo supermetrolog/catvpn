@@ -1,14 +1,14 @@
 package logger
 
-import (
-	"github.com/sirupsen/logrus"
-	"github.com/supermetrolog/myvpn/pkg/logger"
-)
+import "github.com/sirupsen/logrus"
 
-func NewLogger(f logrus.Formatter, l logrus.Level) logger.Logger {
-	log := logrus.New()
-	log.SetFormatter(f)
-	log.SetLevel(l)
+func init() {
+	logrus.SetFormatter(&logrus.TextFormatter{
+		ForceColors:            true,
+		FullTimestamp:          true,
+		TimestampFormat:        "15:04:05",
+		DisableLevelTruncation: true,
+	})
 
-	return log
+	logrus.SetLevel(logrus.DebugLevel)
 }

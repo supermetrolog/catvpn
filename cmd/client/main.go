@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/supermetrolog/myvpn/internal/client"
+	_ "github.com/supermetrolog/myvpn/internal/logger"
 	"github.com/supermetrolog/myvpn/internal/routeconfigurator"
 	"github.com/supermetrolog/myvpn/internal/tunnel"
 	"github.com/supermetrolog/myvpn/internal/tuntap"

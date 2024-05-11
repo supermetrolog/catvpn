@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
+	_ "github.com/supermetrolog/myvpn/internal/logger"
 	"net/http"
 )
 
