@@ -2,10 +2,10 @@ package tuntap
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/songgao/water"
 	"github.com/supermetrolog/myvpn/internal/common"
 	"github.com/supermetrolog/myvpn/internal/helpers/command"
-	"log"
 	"net"
 )
 
@@ -27,9 +27,9 @@ func (t *TunFactory) Create(subnet net.IPNet, mtu int) (common.Tun, error) {
 		return nil, fmt.Errorf("create tun iface error: %v", err)
 	}
 
-	log.Printf("Created interface with name: %s\n", iface.Name())
+	logrus.Debugf("Created interface with name: %s", iface.Name())
 
-	log.Printf("Назначаем размер MTU: %s, для созданного интерфейса: %s\n", subnet.IP, iface.Name())
+	logrus.Debugf("Назначаем размер MTU: %s, для созданного интерфейса: %s", subnet.IP, iface.Name())
 
 	cmd := fmt.Sprintf("ip link set dev %s mtu %d", iface.Name(), mtu)
 	out, err := command.RunCommand(cmd)
@@ -37,7 +37,7 @@ func (t *TunFactory) Create(subnet net.IPNet, mtu int) (common.Tun, error) {
 		return nil, fmt.Errorf("set iface mtu error: out: %s, error: %w", out, err)
 	}
 
-	log.Printf("Назначаем IP адресс: %s, для созданного интерфейса: %s\n", subnet.IP, iface.Name())
+	logrus.Debugf("Назначаем IP адресс: %s, для созданного интерфейса: %s", subnet.IP, iface.Name())
 
 	cmd = fmt.Sprintf("ip addr add %s dev %s", subnet.String(), iface.Name())
 	out, err = command.RunCommand(cmd)
@@ -45,7 +45,7 @@ func (t *TunFactory) Create(subnet net.IPNet, mtu int) (common.Tun, error) {
 		return nil, fmt.Errorf("set ip addr error: out: %s, error: %w", out, err)
 	}
 
-	log.Println("Включаем созданный интерфейс")
+	logrus.Debugln("Включаем созданный интерфейс")
 
 	cmd = fmt.Sprintf("ip link set dev %s up", iface.Name())
 	out, err = command.RunCommand(cmd)

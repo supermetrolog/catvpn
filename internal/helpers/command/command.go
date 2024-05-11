@@ -3,8 +3,7 @@ package command
 import (
 	"bytes"
 	"fmt"
-	"golang.org/x/net/ipv4"
-	"log"
+	"github.com/sirupsen/logrus"
 	"os/exec"
 )
 
@@ -18,25 +17,11 @@ func RunCommand(cmd string) (string, error) {
 
 	err := c.Run()
 
-	log.Printf("Runned command: %s", cmd)
+	logrus.Debugf("Runned command: %s", cmd)
 
 	if err != nil {
 		return stderr.String(), fmt.Errorf("command error: %v", err)
 	}
 
 	return stdout.String(), err
-}
-
-func WritePacket(frame []byte) {
-	header, err := ipv4.ParseHeader(frame)
-	if err != nil {
-		fmt.Println("Write packet err:", err)
-	} else {
-		fmt.Println("PACKET LEN:", len(frame))
-		fmt.Println("SRC:", header.Src)
-		fmt.Println("DST:", header.Dst)
-		fmt.Println("ID:", header.ID)
-		fmt.Println("CHECKSUM:", header.Checksum)
-		fmt.Println("TOTAL LEN:", header.TotalLen)
-	}
 }

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/supermetrolog/myvpn/internal/helpers/checkerr"
+	"github.com/sirupsen/logrus"
 	"github.com/supermetrolog/myvpn/internal/ipdistributor"
 	"github.com/supermetrolog/myvpn/internal/peersmanager"
 	"github.com/supermetrolog/myvpn/internal/routeconfigurator"
@@ -13,6 +13,10 @@ import (
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.TextFormatter{
+		ForceColors: true,
+	})
+
 	subnet := net.IPNet{
 		IP:   net.IPv4(10, 1, 1, 1),
 		Mask: net.IPv4Mask(255, 255, 255, 0),
@@ -23,7 +27,7 @@ func main() {
 
 	addr, err := net.ResolveUDPAddr("udp", serverIp.String()+":"+strconv.Itoa(serverPort))
 
-	checkerr.CheckErr("Unable resolve udp addr", err)
+	checkErr("Unable resolve udp addr", err)
 
 	cfg := server.NewConfig(
 		2000,
@@ -43,4 +47,10 @@ func main() {
 	s := server.NewServer(cfg, tunnelFactory, tunFactory, ipDistributorFactory, peersManager, trafficRouteConfigurator)
 
 	s.Serve()
+}
+
+func checkErr(message string, e error) {
+	if e != nil {
+		logrus.Fatalf(message, e)
+	}
 }

@@ -2,10 +2,10 @@ package server
 
 import (
 	"fmt"
-	"github.com/supermetrolog/myvpn/internal/helpers/command"
+	"github.com/sirupsen/logrus"
+	"github.com/supermetrolog/myvpn/internal/helpers/ippacket"
 	"github.com/supermetrolog/myvpn/internal/helpers/network"
 	"github.com/supermetrolog/myvpn/internal/protocol"
-	"log"
 )
 
 func (s *Server) ackHandler(packet *protocol.TunnelPacket) error {
@@ -31,6 +31,8 @@ func (s *Server) ackHandler(packet *protocol.TunnelPacket) error {
 	if err != nil {
 		return fmt.Errorf("flag ack: new peer error: %w", err)
 	}
+
+	logrus.Infof("Created new peer with addr: %s and dedicated ip: %s", peer.Addr(), peer.DedicatedIP())
 
 	err = s.peersManager.Add(peer)
 	if err != nil {
@@ -65,6 +67,8 @@ func (s *Server) finHandler(packet *protocol.TunnelPacket) error {
 		return fmt.Errorf("remove peer error: %w", err)
 	}
 
+	logrus.Infof("Removed peer with addr: %s and dedicated ip: %s", peer.Addr(), peer.DedicatedIP())
+
 	err = s.ipDistributor.ReleaseIP(peer.DedicatedIP())
 
 	if err != nil {
@@ -75,14 +79,14 @@ func (s *Server) finHandler(packet *protocol.TunnelPacket) error {
 }
 
 func (s *Server) dataHandler(packet *protocol.TunnelPacket) error {
-	command.WritePacket(packet.Packet().Payload())
+	ippacket.LogHeader(packet.Packet().Payload())
 
 	n, err := s.net.Write(packet.Packet().Payload())
 	if err != nil {
 		return fmt.Errorf("write to net error: %w", err)
 	}
 
-	log.Printf("Write bytes to net: %d", n)
+	logrus.Infof("Write bytes to NET: %d", n)
 
 	return nil
 }

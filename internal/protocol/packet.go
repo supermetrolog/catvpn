@@ -2,7 +2,6 @@ package protocol
 
 import (
 	"bytes"
-	"log"
 	"net"
 )
 
@@ -80,7 +79,6 @@ func (p *TunnelPacket) Addr() net.Addr {
 }
 
 func NewTunnelPacket(addr net.Addr, header Header, payload []byte) *TunnelPacket {
-	log.Printf("Create new tunnel packet: %s", addr.String())
 	return &TunnelPacket{
 		packet: NewPacket(header, payload),
 		addr:   addr,

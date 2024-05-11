@@ -2,11 +2,10 @@ package client
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/supermetrolog/myvpn/internal/common"
-	"github.com/supermetrolog/myvpn/internal/helpers/checkerr"
-	"github.com/supermetrolog/myvpn/internal/helpers/command"
+	"github.com/supermetrolog/myvpn/internal/helpers/ippacket"
 	"github.com/supermetrolog/myvpn/internal/protocol"
-	"log"
 	"net"
 )
 
@@ -48,23 +47,45 @@ func NewClient(
 }
 
 func (c *Client) Serve() {
-	checkerr.CheckErr("setup error", c.setup())
+	err := c.setup()
+
+	if err != nil {
+		logrus.Fatalf("Setup error: %v", err)
+	}
 
 	go func() {
-		checkerr.CheckErr("listen tunnel error", c.listenTunnel())
+		err = c.listenTunnel()
+
+		if err != nil {
+			logrus.Fatalf("Listen tunnel error: %v", err)
+		}
 	}()
 
 	go func() {
-		checkerr.CheckErr("consume tunnel error", c.fromTunnelConsumer())
+		err = c.fromTunnelConsumer()
+
+		if err != nil {
+			logrus.Fatalf("Consume tunnel error: %v", err)
+		}
 	}()
 
-	<-c.connectedChan // TODOl
+	logrus.Debugln("Waiting connect...")
+
+	<-c.connectedChan
 
 	go func() {
-		checkerr.CheckErr("listen net error", c.listenNet())
+		err = c.listenNet()
+
+		if err != nil {
+			logrus.Fatalf("Listen net error: %v", err)
+		}
 	}()
 
-	checkerr.CheckErr("consume net error", c.fromNetConsumer())
+	err = c.fromNetConsumer()
+
+	if err != nil {
+		logrus.Fatalf("Consume net error: %v", err)
+	}
 }
 
 func (c *Client) setup() error {
@@ -75,13 +96,16 @@ func (c *Client) setup() error {
 
 	c.tunnel = tunnel
 
-	n, err := c.WriteToTunnel(protocol.NewTunnelPacket(c.cfg.TunnelServerAddr(), protocol.NewHeader(protocol.FlagAcknowledge), []byte{}))
+	_, err = c.WriteToTunnel(protocol.NewTunnelPacket(
+		c.cfg.TunnelServerAddr(),
+		protocol.NewHeader(protocol.FlagAcknowledge), []byte{},
+	))
 
 	if err != nil {
 		return fmt.Errorf("send ack flag to server error: %w", err)
 	}
 
-	log.Printf("Send Ack flag to server. Writed %d bytes", n)
+	logrus.Debugln("Send ACK flag to server")
 
 	return nil
 }
@@ -94,9 +118,9 @@ func (c *Client) listenNet() error {
 			return fmt.Errorf("read from net error: %w", err)
 		}
 
-		log.Printf("Readed bytes from NET %d", n)
+		logrus.Debugf("Readed bytes from NET %d", n)
 
-		command.WritePacket(buf[:n])
+		ippacket.LogHeader(buf[:n])
 
 		p := protocol.NetPacket(buf[:n])
 		c.fromNet <- &p
@@ -111,7 +135,7 @@ func (c *Client) listenTunnel() error {
 			return fmt.Errorf("read from tunnel error: %w", err)
 		}
 
-		log.Printf("Readed bytes from TUNNEL: %d", n)
+		logrus.Debugf("Readed bytes from TUNNEL: %d", n)
 
 		c.fromTunnel <- protocol.UnmarshalTunnelPacket(addr, buf[:n])
 	}
@@ -123,17 +147,17 @@ func (c *Client) fromTunnelConsumer() error {
 		case protocol.FlagAcknowledge:
 			err := c.ackHandler(packet)
 			if err != nil {
-				return fmt.Errorf("flag ACK error: %w", err) // TODO
+				logrus.Warnf("Flag ACK error: %v", err)
 			}
 		case protocol.FlagFin:
 			err := c.finHandler()
 			if err != nil {
-				return fmt.Errorf("flag FIN error: %w", err) // TODO
+				logrus.Warnf("Flag FIN error: %v", err)
 			}
 		case protocol.FlagData:
 			err := c.dataHandler(packet)
 			if err != nil {
-				return fmt.Errorf("flag DATA error: %w", err) // TODO
+				logrus.Warnf("Flag DATA error: %v", err)
 			}
 		}
 	}
@@ -148,10 +172,11 @@ func (c *Client) fromNetConsumer() error {
 		n, err := c.WriteToTunnel(tunnelPacket)
 
 		if err != nil {
-			return fmt.Errorf("write in tunnel error: %w", err)
+			logrus.Warnf("Write to tunnel error: %v", err)
+			continue
 		}
 
-		log.Printf("Wrote to TUNNEL %d bytes", n)
+		logrus.Debugf("Writed to TUNNEL %d bytes", n)
 	}
 
 	return nil
