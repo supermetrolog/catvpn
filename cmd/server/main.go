@@ -14,6 +14,7 @@ import (
 )
 
 func main() {
+	// TODO: config
 	subnet := net.IPNet{
 		IP:   net.IPv4(10, 1, 1, 1),
 		Mask: net.IPv4Mask(255, 255, 255, 0),
