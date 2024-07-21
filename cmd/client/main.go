@@ -1,8 +1,12 @@
 package main
 
 import (
+	"fmt"
+	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/supermetrolog/myvpn/internal/client"
+	"github.com/supermetrolog/myvpn/internal/config"
 	_ "github.com/supermetrolog/myvpn/internal/logger"
 	"github.com/supermetrolog/myvpn/internal/routeconfigurator"
 	"github.com/supermetrolog/myvpn/internal/tunnel"
@@ -13,29 +17,25 @@ import (
 )
 
 func main() {
-	// TODO: config
-	clientIp := net.IPv4(192, 168, 16, 2)
-	clientPort := 7070
+	clientCfg, err := getClientConfig()
+	checkErr("Unable get client config", err)
 
-	serverIp := net.IPv4(192, 168, 16, 3)
-	serverPort := 9090
-
-	serverAddr, err := net.ResolveUDPAddr("udp", serverIp.String()+":"+strconv.Itoa(serverPort))
+	serverAddr, err := net.ResolveUDPAddr("udp", clientCfg.ServerHost.Ip+":"+strconv.Itoa(int(clientCfg.ServerHost.Port))) // TODO:
 
 	checkErr("Unable resolve server udp addr", err)
 
-	clientAddr, err := net.ResolveUDPAddr("udp", clientIp.String()+":"+strconv.Itoa(clientPort))
+	clientAddr, err := net.ResolveUDPAddr("udp", clientCfg.ClientHost.Ip+":"+strconv.Itoa(int(clientCfg.ClientHost.Port)))
 
 	checkErr("Unable resolve client udp addr", err)
 
-	cfg := client.NewConfig(
-		2000,
-		60,
+	cfg := client.NewConfig( // TODO:
+		int(clientCfg.BufferSize),
+		int(clientCfg.HeartBeatTimeInterval),
 		serverAddr,
 		clientAddr,
-		1500,
+		int(clientCfg.MTU),
 		"udp",
-		time.Second*5,
+		time.Second*time.Duration(clientCfg.ServerConnectionTimeout),
 	)
 
 	tunFactory := tuntap.New()
@@ -45,6 +45,24 @@ func main() {
 	s := client.NewClient(cfg, tunnelFactory, tunFactory, trafficRouteConfigurator)
 
 	s.Serve()
+}
+
+func getClientConfig() (*config.ClientConfig, error) {
+	err := godotenv.Load()
+
+	if err != nil {
+		return nil, fmt.Errorf("unable load env from .env file: %w", err)
+	}
+
+	var cfg config.ClientConfig
+
+	err = cleanenv.ReadEnv(&cfg)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable map env to config struct: %w", err)
+	}
+
+	return &cfg, nil
 }
 
 func checkErr(message string, e error) {

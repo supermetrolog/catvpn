@@ -28,7 +28,7 @@ func (t *udpConnDecorator) ReadFrom(p []byte) (int, net.Addr, error) {
 	n, err := t.conn.Read(p)
 
 	if err != nil {
-		return n, t.conn.RemoteAddr(), fmt.Errorf("FUCK: %w", err)
+		return n, t.conn.RemoteAddr(), fmt.Errorf("unable read from tunnel: %w", err)
 	}
 
 	return n, t.conn.RemoteAddr(), nil

@@ -74,7 +74,7 @@ func (c *Client) Serve() {
 
 	select {
 	case <-c.connectedChan:
-	case <-time.After(time.Second * c.cfg.ServerConnectionTimeout):
+	case <-time.After(c.cfg.ServerConnectionTimeout):
 		logrus.Fatalf("Conntection timeout")
 	}
 
