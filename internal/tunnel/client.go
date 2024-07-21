@@ -13,6 +13,7 @@ func NewClientTunnelFactory() *ClientTunnelFactory {
 	return &ClientTunnelFactory{}
 }
 
+// TODO: переделать на это
 //func (t *ClientTunnelFactory) Create(addr net.Addr) (common.Tunnel, error) {
 //	udpAddr, err := net.ResolveUDPAddr(addr.Network(), addr.String())
 //	//udpAddr, err := net.ResolveUDPAddr(addr.Network(), "server:9090")
@@ -25,10 +26,10 @@ func NewClientTunnelFactory() *ClientTunnelFactory {
 //		return nil, fmt.Errorf("unable to listen udp: %w", err)
 //	}
 //
-//	n, err := conn.WriteTo([]byte("ANAL"), udpAddr)
+//	n, err := conn.WriteTo([]byte("TEST"), udpAddr)
 //
 //	if err != nil {
-//		log.Fatalf("ANAL: %v", err)
+//		log.Fatalf("TEST: %v", err)
 //	}
 //
 //	log.Println(n)

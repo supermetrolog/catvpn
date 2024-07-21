@@ -7,6 +7,7 @@ import (
 	"github.com/supermetrolog/myvpn/internal/helpers/ippacket"
 	"github.com/supermetrolog/myvpn/internal/protocol"
 	"net"
+	"time"
 )
 
 type State struct {
@@ -71,7 +72,11 @@ func (c *Client) Serve() {
 
 	logrus.Debugln("Waiting connect...")
 
-	<-c.connectedChan
+	select {
+	case <-c.connectedChan:
+	case <-time.After(time.Second * c.cfg.ServerConnectionTimeout):
+		logrus.Fatalf("Conntection timeout")
+	}
 
 	go func() {
 		err = c.listenNet()
@@ -98,7 +103,8 @@ func (c *Client) setup() error {
 
 	_, err = c.WriteToTunnel(protocol.NewTunnelPacket(
 		c.cfg.TunnelServerAddr(),
-		protocol.NewHeader(protocol.FlagAcknowledge), []byte{},
+		protocol.NewHeader(protocol.FlagAcknowledge),
+		[]byte{},
 	))
 
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"github.com/supermetrolog/myvpn/internal/tuntap"
 	"net"
 	"strconv"
+	"time"
 )
 
 func main() {
@@ -34,6 +35,7 @@ func main() {
 		clientAddr,
 		1500,
 		"udp",
+		time.Second*5,
 	)
 
 	tunFactory := tuntap.New()
