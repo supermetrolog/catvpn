@@ -94,7 +94,7 @@ func (c *Client) Serve() {
 }
 
 func (c *Client) setup() error {
-	tunnel, err := c.tunnelFactory.Create(c.cfg.TunnelClientAddr())
+	tunnel, err := c.tunnelFactory.Create(c.cfg.TunnelServerAddr())
 	if err != nil {
 		return fmt.Errorf("create tunnel error: %w", err)
 	}
