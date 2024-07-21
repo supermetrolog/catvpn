@@ -1,7 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
+	"github.com/supermetrolog/myvpn/internal/config"
 	"github.com/supermetrolog/myvpn/internal/ipdistributor"
 	_ "github.com/supermetrolog/myvpn/internal/logger"
 	"github.com/supermetrolog/myvpn/internal/peersmanager"
@@ -14,25 +18,22 @@ import (
 )
 
 func main() {
-	// TODO: config
-	subnet := net.IPNet{
-		IP:   net.IPv4(10, 1, 1, 1),
-		Mask: net.IPv4Mask(255, 255, 255, 0),
-	}
+	serverCfg, err := getClientConfig()
+	checkErr("Unable get server config", err)
 
-	serverIp := net.IPv4(0, 0, 0, 0)
-	serverPort := 9090
+	_, subnet, err := net.ParseCIDR(serverCfg.Subnet)
+	checkErr("Unable parse CIDR", err)
 
-	addr, err := net.ResolveUDPAddr("udp", serverIp.String()+":"+strconv.Itoa(serverPort))
+	addr, err := net.ResolveUDPAddr("udp", serverCfg.ServerHost.Ip+":"+strconv.Itoa(int(serverCfg.ServerHost.Port)))
 
 	checkErr("Unable resolve udp addr", err)
 
 	cfg := server.NewConfig(
-		2000,
-		subnet,
-		60,
+		int(serverCfg.BufferSize),
+		*subnet,
+		int(serverCfg.HeartBeatTimeInterval),
 		addr,
-		1500,
+		int(serverCfg.MTU),
 		"udp",
 	)
 
@@ -45,6 +46,24 @@ func main() {
 	s := server.NewServer(cfg, tunnelFactory, tunFactory, ipDistributorFactory, peersManager, trafficRouteConfigurator)
 
 	s.Serve()
+}
+
+func getClientConfig() (*config.ServerConfig, error) {
+	err := godotenv.Load()
+
+	if err != nil {
+		return nil, fmt.Errorf("unable load env from .env file: %w", err)
+	}
+
+	var cfg config.ServerConfig
+
+	err = cleanenv.ReadEnv(&cfg)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable map env to config struct: %w", err)
+	}
+
+	return &cfg, nil
 }
 
 func checkErr(message string, e error) {

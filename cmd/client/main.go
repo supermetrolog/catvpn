@@ -20,7 +20,7 @@ func main() {
 	clientCfg, err := getClientConfig()
 	checkErr("Unable get client config", err)
 
-	serverAddr, err := net.ResolveUDPAddr("udp", clientCfg.ServerHost.Ip+":"+strconv.Itoa(int(clientCfg.ServerHost.Port))) // TODO:
+	serverAddr, err := net.ResolveUDPAddr("udp", clientCfg.ServerHost.Ip+":"+strconv.Itoa(int(clientCfg.ServerHost.Port)))
 
 	checkErr("Unable resolve server udp addr", err)
 
@@ -28,7 +28,7 @@ func main() {
 
 	checkErr("Unable resolve client udp addr", err)
 
-	cfg := client.NewConfig( // TODO:
+	cfg := client.NewConfig(
 		int(clientCfg.BufferSize),
 		int(clientCfg.HeartBeatTimeInterval),
 		serverAddr,
