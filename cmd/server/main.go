@@ -11,7 +11,7 @@ import (
 	"github.com/supermetrolog/myvpn/internal/peersmanager"
 	"github.com/supermetrolog/myvpn/internal/routeconfigurator"
 	"github.com/supermetrolog/myvpn/internal/server"
-	"github.com/supermetrolog/myvpn/internal/tunnel"
+	"github.com/supermetrolog/myvpn/internal/tunnel/udp"
 	"github.com/supermetrolog/myvpn/internal/tuntap"
 	"net"
 	"strconv"
@@ -39,7 +39,7 @@ func main() {
 
 	tunFactory := tuntap.New()
 	trafficRouteConfigurator := routeconfigurator.NewServerTrafficRouteConfigurator()
-	tunnelFactory := tunnel.NewServerTunnelFactory()
+	tunnelFactory := udp.NewServerTunnelFactory()
 	ipDistributorFactory := ipdistributor.NewIpDistributorFactory()
 	peersManager := peersmanager.New()
 
